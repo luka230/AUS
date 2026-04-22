@@ -25,14 +25,40 @@ namespace Modbus.ModbusFunctions
         public override byte[] PackRequest()
         {
             //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+            byte[] request = new byte[12];
+
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId)), 0, request, 0, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId)), 0, request, 2, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.Length)), 0, request, 4, 2);
+            request[6] = CommandParameters.UnitId;
+            request[7] = CommandParameters.FunctionCode;
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).StartAddress)), 0, request, 8, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)(((ModbusReadCommandParameters)CommandParameters).Quantity))), 0, request, 10, 2);
+
+            return request;
         }
 
         /// <inheritdoc />
         public override Dictionary<Tuple<PointType, ushort>, ushort> ParseResponse(byte[] response)
         {
             //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+            Dictionary<Tuple<PointType, ushort>, ushort> dict = new Dictionary<Tuple<PointType, ushort>, ushort>();
+            if ((response[7] & 0x80) == 0)
+            {
+                int byteCount = response[8];
+                int quantity = ((ModbusReadCommandParameters)CommandParameters).Quantity;
+                ushort startAddress = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
+                for (int i = 0; i < byteCount / 2; i++)
+                {
+                    var value = (ushort)(response[9 + i * 2] << 8 | response[10 + i * 2]);
+                    dict.Add(new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, (ushort)(startAddress + i)), value);
+                }
+            }
+            else
+            {
+                HandeException(response[8]);
+            }
+            return dict;
         }
     }
 }
