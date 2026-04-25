@@ -32,6 +32,19 @@ namespace dCom.ViewModel
 				return EguValue.ToString();
 			}
 		}
+        public override ushort RawValue
+        {
+            get => base.RawValue;
+            set
+            {
+                base.RawValue = value;
+
+                var converter = new ProcessingModule.EGUConverter();
+
+               
+                EguValue = value;
+            }
+        }
 
         protected override bool WriteCommand_CanExecute(object obj)
         {

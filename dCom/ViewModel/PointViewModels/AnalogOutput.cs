@@ -28,5 +28,6 @@ namespace dCom.ViewModel
                 this.stateUpdater.LogMessage(message);
             }
         }
+
     }
 }

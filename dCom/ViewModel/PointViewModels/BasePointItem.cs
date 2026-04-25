@@ -182,6 +182,7 @@ namespace dCom.ViewModel
 			}
 		}
 
+
         public IConfigItem ConfigItem
         {
             get
